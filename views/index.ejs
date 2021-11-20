@@ -2,45 +2,120 @@
 <html>
 
 <head>
-
-  <title>WebTutsPlus WebCon</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css2?family=Baloo+Tamma+2:wght@400;500;600&family=Josefin+Slab&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/styles.css">
-
-  <!-- <link rel="stylesheet" href="/css/main.css" /> -->
-
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Podcaster</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
 </head>
 
-<body class="h-100">
-  <div class="h-100" id="video_display">
+<body>
+    <nav class="navbar" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+            <a class="navbar-item" href="https://bulma.io">
+                <img src="https://bulma.io/images/bulma-logo.png" width="112" height="28">
+            </a>
 
-    <div id ="video_container" class="align-items-center" style="margin-top: 10%;">
-      <div class="local_div" id="div1" style="">
-				<video id="localVideo" class="" autoplay muted playsinline></video>
-			</div>
-			<div class="remote_div" id="div2">
-				<video id="remoteVideo" class="" autoplay playsinline></video>
-			</div>
-    </div>
+            <!-- <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false"
+                data-target="navbarBasicExample">
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+            </a> -->
+        </div>
 
-  </div>
-  
+        <!-- <div id="navbarBasicExample" class="navbar-menu">
+            <div class="navbar-start">
+                <a class="navbar-item">
+                    Home
+                </a>
 
-  
+                <a class="navbar-item">
+                    Documentation
+                </a>
 
-  <!-- Import SocketIO for signalling -->
-  <script src="/socket.io/socket.io.js"></script>
+                <div class="navbar-item has-dropdown is-hoverable">
+                    <a class="navbar-link">
+                        More
+                    </a>
 
-  <!-- Import WebRTC adapter for compatibility with all the browsers  -->
-  <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
-  
-  <!-- Import TURN config -->
-  <script src="js\config.js"></script>
+                    <div class="navbar-dropdown">
+                        <a class="navbar-item">
+                            About
+                        </a>
+                        <a class="navbar-item">
+                            Jobs
+                        </a>
+                        <a class="navbar-item">
+                            Contact
+                        </a>
+                        <hr class="navbar-divider">
+                        <a class="navbar-item">
+                            Report an issue
+                        </a>
+                    </div>
+                </div>
+            </div>
 
-  <!-- Import script containing WebRTC related functions -->
-  <script src="js\main.js"></script>
-  
+            <div class="navbar-end">
+                <div class="navbar-item">
+                    <div class="buttons">
+                        <a class="button is-primary">
+                            <strong>Sign up</strong>
+                        </a>
+                        <a class="button is-light">
+                            Log in
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div> -->
+    </nav>
+    <section class="section">
+        <div class="container">
+            <h1 class="title">
+                PodcastMe
+            </h1>
+            <div class="columns">
+                <div class="column">
+                    <!-- <button class="button is-primary" onclick="openCamera()">Connect</button>
+                    <button class="button is-info" onclick="disconnect()">Disconnect</button> -->
+                    <button class="button is-danger" onclick="record()">Record</button>
+                    <button class="button is-warning" onclick="stoprecording()">Stop Recording</button>
+                    <div class="column" id="downloadbutton"></div>
+                </div>
+            </div>
+
+
+            <div class="columns">
+                <div class="column">
+                    <video id="localVideo" style="border:3px solid #000000; width: 300;height: 300;" autoplay muted playsinline></video>
+                </div>
+                <div class="column remote_div" id="div2">
+                    <!-- For playing local audio -->
+                    <video id="remoteVideo" class="" style="border:3px solid #000000; width: 300;height: 300;" autoplay playsinline></video>
+                </div>
+            </div>
+
+
+        </div>
+    </section>
+
 </body>
+<!-- Import SocketIO for signalling -->
+<script src="/socket.io/socket.io.js"></script>
+
+<!-- Import WebRTC adapter for compatibility with all the browsers  -->
+<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+
+<!-- Import TURN config -->
+<script src="js\config.js"></script>
+
+<!-- local video for recording -->
+<!-- <script type="module" src="js/localvideo.js"></script> -->
+
+<!-- Import script containing WebRTC related functions -->
+<script src="js\main.js"></script>
+
+
 
 </html>
