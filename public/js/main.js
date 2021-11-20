@@ -1,5 +1,4 @@
 'use strict';
-
 //Defining some global utility variables
 var isChannelReady = false;
 var isInitiator = false;
@@ -8,14 +7,15 @@ var localStream;
 var pc;
 var remoteStream;
 var turnReady;
+//recorder
+var mediaRecorder;
+var options = { mimeType: "video/webm; codecs=vp9" };
+var recordedChunks = [];
 
 //Initialize turn/stun server here
 var pcConfig = turnConfig;
 
-var localStreamConstraints = {
-    audio: true,
-    video: true
-  };
+var localStreamConstraints = { audio: true, video: { width: 1920, height: 1080 } };
 
 
 //Not prompting for room name
@@ -33,55 +33,55 @@ if (room !== '') {
 }
 
 //Defining socket connections for signalling
-socket.on('created', function(room) {
+socket.on('created', function (room) {
   console.log('Created room ' + room);
   isInitiator = true;
 });
 
-socket.on('full', function(room) {
+socket.on('full', function (room) {
   console.log('Room ' + room + ' is full');
 });
 
-socket.on('join', function (room){
+socket.on('join', function (room) {
   console.log('Another peer made a request to join room ' + room);
   console.log('This peer is the initiator of room ' + room + '!');
   isChannelReady = true;
 });
 
-socket.on('joined', function(room) {
+socket.on('joined', function (room) {
   console.log('joined: ' + room);
   isChannelReady = true;
 });
 
-socket.on('log', function(array) {
+socket.on('log', function (array) {
   console.log.apply(console, array);
 });
 
 
 //Driver code
-socket.on('message', function(message, room) {
-    console.log('Client received message:', message,  room);
-    if (message === 'got user media') {
+socket.on('message', function (message, room) {
+  console.log('Client received message:', message, room);
+  if (message === 'got user media') {
+    maybeStart();
+  } else if (message.type === 'offer') {
+    if (!isInitiator && !isStarted) {
       maybeStart();
-    } else if (message.type === 'offer') {
-      if (!isInitiator && !isStarted) {
-        maybeStart();
-      }
-      pc.setRemoteDescription(new RTCSessionDescription(message));
-      doAnswer();
-    } else if (message.type === 'answer' && isStarted) {
-      pc.setRemoteDescription(new RTCSessionDescription(message));
-    } else if (message.type === 'candidate' && isStarted) {
-      var candidate = new RTCIceCandidate({
-        sdpMLineIndex: message.label,
-        candidate: message.candidate
-      });
-      pc.addIceCandidate(candidate);
-    } else if (message === 'bye' && isStarted) {
-      handleRemoteHangup();
     }
+    pc.setRemoteDescription(new RTCSessionDescription(message));
+    doAnswer();
+  } else if (message.type === 'answer' && isStarted) {
+    pc.setRemoteDescription(new RTCSessionDescription(message));
+  } else if (message.type === 'candidate' && isStarted) {
+    var candidate = new RTCIceCandidate({
+      sdpMLineIndex: message.label,
+      candidate: message.candidate
+    });
+    pc.addIceCandidate(candidate);
+  } else if (message === 'bye' && isStarted) {
+    handleRemoteHangup();
+  }
 });
-  
+
 
 
 //Function to send message in a room
@@ -93,19 +93,23 @@ function sendMessage(message, room) {
 
 
 //Displaying Local Stream and Remote Stream on webpage
-var localVideo = document.querySelector('#localVideo');
+var localVideo = document.getElementById('localVideo');//document.querySelector('#localVideo');
 var remoteVideo = document.querySelector('#remoteVideo');
 console.log("Going to find Local media");
 navigator.mediaDevices.getUserMedia(localStreamConstraints)
-.then(gotStream)
-.catch(function(e) {
-  alert('getUserMedia() error: ' + e.name);
-});
+  .then(gotStream)
+  .catch(function (e) {
+    alert('getUserMedia() error: ' + e.name);
+  });
 
 //If found local stream
 function gotStream(stream) {
   console.log('Adding local stream.');
   localStream = stream;
+  //RECORDING
+  mediaRecorder = new MediaRecorder(stream, options);
+  mediaRecorder.ondataavailable = handleDataAvailable;
+  //RECORDING
   localVideo.srcObject = stream;
   sendMessage('got user media', room);
   if (isInitiator) {
@@ -132,7 +136,7 @@ function maybeStart() {
 }
 
 //Sending bye if user closes the window
-window.onbeforeunload = function() {
+window.onbeforeunload = function () {
   sendMessage('bye', room);
 };
 
@@ -208,7 +212,7 @@ function handleRemoteStreamRemoved(event) {
 function hangup() {
   console.log('Hanging up.');
   stop();
-  sendMessage('bye',room);
+  sendMessage('bye', room);
 }
 
 function handleRemoteHangup() {
@@ -221,4 +225,48 @@ function stop() {
   isStarted = false;
   pc.close();
   pc = null;
+}
+
+function record(){
+
+  mediaRecorder.start();
+}
+
+function stoprecording(){
+  console.log("stopping");
+  mediaRecorder.stop();
+}
+
+function handleDataAvailable(event) {
+  console.log("data-available");
+  if (event.data.size > 0) {
+      recordedChunks.push(event.data);
+      console.log(recordedChunks);
+      getdownloadbutton();
+  } else {
+      // ...
+  }
+}
+
+var url;
+function getdownloadbutton() {
+    var blob = new Blob(recordedChunks, {
+        type: "video/webm"
+    });
+    url = URL.createObjectURL(blob);
+    var button = document.createElement("a");
+    document.getElementById("downloadbutton").appendChild(button);
+    //a.style = "display: none";
+    button.innerHTML="Download"
+    button.href = url;
+    button.download = "test.webm";
+    button.onclick=()=>{
+        console.log("Revoke")
+        setTimeout(function() {
+            URL.revokeObjectURL(url);
+            document.getElementById("downloadbutton").removeChild(button)
+           }, 400);
+    };
+    //a.click();
+    
 }
